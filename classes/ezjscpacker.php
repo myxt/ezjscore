@@ -37,7 +37,7 @@
  0 = off
  1 = merge files
  2 = 1 + remove whitespace & code comments
- 3 = 2 + remove more whitespace  (jsmin is used for scripts)
+ 3 = 2 + remove more whitespace
 
  In case of css files, relative image paths will be replaced
  by absolute paths.
@@ -94,7 +94,7 @@ class ezjscPacker
             }
             else
             {
-                $ret .=  $packedFile ? "<script$lang type=\"$type\">\r\n//<![CDATA[\r\n$packedFile\r\n//]]>\r\n</script>\r\n" : '';
+                $ret .=  $packedFile ? "<script$lang type=\"$type\">\r\n$packedFile\r\n</script>\r\n" : '';
             }
         }
         return $ret;
@@ -566,7 +566,7 @@ class ezjscPacker
             }
             else
             {
-                $stats .= sprintf( "%-40s%-40s%-40s\n", $data['cache_hash'], extension, $data['pack_level'] );
+                $stats .= sprintf( "%-40s%-40s%-40s\n", $data['cache_hash'], $extension, $data['pack_level'] );
             }
         }
 
