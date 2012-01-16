@@ -120,11 +120,22 @@ class ezjscPacker
         $media = $media && $media !== 'all' ? ' media="' . $media . '"' : '';
         foreach ( $packedFiles as $packedFile )
         {
-            // Is this a css file or css content?
+            // Is this a css file, a less file or css content?
             if ( isset( $packedFile[5] ) &&
                ( strpos( $packedFile, 'http://' ) === 0 ||
                  strpos( $packedFile, 'https://' ) === 0 ||
                  strripos( $packedFile, '.css' ) === ( strlen( $packedFile ) -4 ) ) )
+            {
+                if ( $useFullUrl )
+                {
+                    $packedFile = $http->createRedirectUrl( $packedFile, array( 'pre_url' => false ) );
+                }
+                $ret .= "<link rel=\"$rel\" type=\"$type\" href=\"$packedFile\"$media />\r\n";
+            }
+            elseif ( isset( $packedFile[5] ) &&
+               ( strpos( $packedFile, 'http://' ) === 0 ||
+                 strpos( $packedFile, 'https://' ) === 0 ||
+                 strripos( $packedFile, '.less' ) === ( strlen( $packedFile ) -5 ) ) )
             {
                 if ( $useFullUrl )
                 {
@@ -214,7 +225,7 @@ class ezjscPacker
      * @param bool $indexDirInCacheHash To add index path in cache hash or not
      * @return array List of css files
      */
-    static function packFiles( $fileArray, $subPath = '', $fileExtension = '.js', $packLevel = 2, $indexDirInCacheHash = false )
+    static function packFiles( $fileArray, $subPath = '', $fileExtension = '.js', $packLevel = 2, $indexDirInCacheHash = false, $extraParsers = false )
     {
         if ( !$fileArray )
         {
@@ -422,6 +433,7 @@ class ezjscPacker
         // Merge file content and create new cache file
         $content = '';
         $isCSS = strpos( $data['file_extension'], '.css' ) !== false;
+        $isLess = strpos( $data['file_extension'], '.less' ) !== false;
         foreach( $data['locale'] as $i => $file )
         {
             // if this is a js / css generator, call to get content
@@ -450,6 +462,13 @@ class ezjscPacker
                 $fileContent = ezjscPacker::fixImgPaths( $fileContent, $file );
                 // Remove @charset if this is not the first file (some browsers will ignore css after a second occurance of this)
                 if ( $i ) $fileContent = preg_replace('/^@charset[^;]+;/i', '', $fileContent);
+            }
+            
+            if( $isLess )
+            {
+                require_once dirname( __FILE__ ) . '/../lib/lessphp/lessc.inc.php';
+                $less = new lessc();
+                $fileContent = $less->parse( $fileContent );
             }
 
             $content .= "/* start: $file */\r\n";
